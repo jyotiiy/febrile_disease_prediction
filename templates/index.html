@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Driven Febrile Illness Decision Support System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0d7377 0%, #14ffec 100%);
+            background-image:
+                linear-gradient(135deg, #0d7377 0%, #14ffec 100%),
+                repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255, 255, 255, .05) 35px, rgba(255, 255, 255, .05) 70px);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+        }
+
+        .container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 300px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='%23f0f8ff' opacity='0.3'%3E%3Ccircle cx='50' cy='30' r='8'/%3E%3Cpath d='M50 38 Q45 45, 30 70 Q28 75, 32 77 Q36 79, 38 75 L50 50 L62 75 Q64 79, 68 77 Q72 75, 70 70 Q55 45, 50 38z'/%3E%3C/g%3E%3C/svg%3E");
+            background-size: 150px;
+            background-repeat: no-repeat;
+            background-position: top right;
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
+        /* Header Component */
+        .header {
+            background: linear-gradient(135deg, #0d7377 0%, #14ffec 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background-image:
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255, 255, 255, 0.05) 2px, rgba(255, 255, 255, 0.05) 4px),
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255, 255, 255, 0.05) 2px, rgba(255, 255, 255, 0.05) 4px);
+            pointer-events: none;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 40px;
+        }
+
+        /* Section Styling */
+        .section {
+            background: linear-gradient(to right, #f0f8ff 0%, #ffffff 100%);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 25px;
+            border-left: 5px solid #0d7377;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .section::before {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: repeating-linear-gradient(90deg,
+                    transparent 0px,
+                    transparent 10px,
+                    #0d737720 10px,
+                    #0d737720 12px);
+        }
+
+        .section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-icon {
+            font-size: 1.3em;
+        }
+
+        /* Vital Information */
+        .vital-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+
+        .input-group input[type="number"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input[type="number"]:focus {
+            outline: none;
+            border-color: #0d7377;
+            box-shadow: 0 0 0 3px rgba(13, 115, 119, 0.1);
+        }
+
+        .input-hint {
+            font-size: 0.85em;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        /* Symptom Checkboxes */
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .checkbox-item:hover {
+            border-color: #0d7377;
+            background: #e6f7f8;
+            transform: translateX(5px);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+            accent-color: #0d7377;
+        }
+
+        .checkbox-item label {
+            cursor: pointer;
+            font-weight: 500;
+            color: #333;
+        }
+
+        /* Lab Parameters */
+        .lab-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        /* Diagnostic Tests */
+        .diagnostic-tests {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Error Messages */
+        .error-message {
+            background: #fee;
+            border-left: 4px solid #f44;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        /* Prediction Button */
+        .prediction-button {
+            width: 100%;
+            padding: 18px;
+            font-size: 1.2em;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, #0d7377 0%, #14ffec 100%);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 30px;
+            box-shadow: 0 4px 15px rgba(13, 115, 119, 0.3);
+        }
+
+        .prediction-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(13, 115, 119, 0.5);
+        }
+
+        .prediction-button:active {
+            transform: translateY(0);
+        }
+
+        /* Results Component */
+        .results-container {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #0d7377 0%, #14ffec 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(13, 115, 119, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-card::before {
+            content: "⚕";
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            font-size: 150px;
+            opacity: 0.1;
+            transform: rotate(15deg);
+        }
+
+        .result-card h2 {
+            font-size: 2em;
+            margin-bottom: 15px;
+        }
+
+        .predicted-illness {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin: 20px 0;
+        }
+
+        .confidence-score {
+            font-size: 1.3em;
+            opacity: 0.95;
+        }
+
+        /* Explanation Component */
+        .explanation-card {
+            background: linear-gradient(to right, #f0f8ff 0%, #ffffff 100%);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 25px;
+            border: 2px solid #e6f7f8;
+        }
+
+        .explanation-card h3 {
+            color: #333;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+
+        .factor-list {
+            list-style: none;
+        }
+
+        .factor-list li {
+            padding: 12px;
+            margin-bottom: 10px;
+            background: white;
+            border-left: 4px solid #0d7377;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .factor-list li::before {
+            content: "✓";
+            color: #0d7377;
+            font-weight: bold;
+            font-size: 1.2em;
+            background: #e6f7f8;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        /* Disclaimer Component */
+        .disclaimer {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+
+        .disclaimer h4 {
+            color: #856404;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .disclaimer p {
+            color: #856404;
+            line-height: 1.6;
+        }
+
+        /* Footer Component */
+        .footer {
+            background: linear-gradient(135deg, #0a5f63 0%, #0d7377 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .footer::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: repeating-linear-gradient(90deg,
+                    #14ffec 0px,
+                    #14ffec 20px,
+                    transparent 20px,
+                    transparent 40px);
+        }
+
+        .footer p {
+            margin: 5px 0;
+        }
+
+        /* Loading Spinner */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #0d7377;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            .checkbox-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .lab-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- 1️⃣ Header Component -->
+        <div class="header">
+            <h1>🏥 AI-Driven Febrile Illness Decision Support System</h1>
+            <p>A clinical decision support tool for early identification of febrile diseases</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Error Message Component -->
+            <div id="errorMessage" class="error-message"></div>
+
+            <!-- 2️⃣ Patient Data Entry Component -->
+            <div class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">🌡️</span>
+                    Vital Information
+                </h2>
+                <div class="vital-group">
+                    <div class="input-group">
+                        <label for="temperature">Fever Temperature (°F)</label>
+                        <input type="number" id="temperature" placeholder="Enter temperature (e.g., 101.5)" step="0.1"
+                            min="95" max="107">
+                        <div class="input-hint">Normal range: 97-99°F | Fever: ≥100.4°F</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2.2 Symptom Selection Component -->
+            <div class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">📋</span>
+                    Clinical Symptoms
+                </h2>
+                <div class="checkbox-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="headache" name="symptom">
+                        <label for="headache">Headache</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="chills" name="symptom">
+                        <label for="chills">Chills</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="bodyPain" name="symptom">
+                        <label for="bodyPain">Body Pain</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="jointPain" name="symptom">
+                        <label for="jointPain">Joint Pain</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="rash" name="symptom">
+                        <label for="rash">Rash</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="nausea" name="symptom">
+                        <label for="nausea">Nausea</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3️⃣ Laboratory Parameters Component -->
+            <div class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">🔬</span>
+                    Laboratory Parameters
+                </h2>
+                <div class="lab-grid">
+                    <div class="input-group">
+                        <label for="platelet">Platelet Count (× 10³/μL)</label>
+                        <input type="number" id="platelet" placeholder="e.g., 150" step="1" min="0" max="1000">
+                        <div class="input-hint">Normal: 150-400</div>
+                    </div>
+                    <div class="input-group">
+                        <label for="wbc">White Blood Cell Count (× 10³/μL)</label>
+                        <input type="number" id="wbc" placeholder="e.g., 7.5" step="0.1" min="0" max="50">
+                        <div class="input-hint">Normal: 4-11</div>
+                    </div>
+                    <div class="input-group">
+                        <label for="hemoglobin">Hemoglobin (g/dL)</label>
+                        <input type="number" id="hemoglobin" placeholder="e.g., 14.5" step="0.1" min="0" max="25">
+                        <div class="input-hint">Normal: Male 13.5-17.5, Female 12-15.5</div>
+                    </div>
+                    <div class="input-group">
+                        <label for="hematocrit">Hematocrit (%)</label>
+                        <input type="number" id="hematocrit" placeholder="e.g., 42" step="0.1" min="0" max="70">
+                        <div class="input-hint">Normal: Male 38.3-48.6%, Female 35.5-44.9%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3.2 Diagnostic Test Flags Component -->
+            <div class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">🧪</span>
+                    Diagnostic Test Results
+                </h2>
+                <div class="diagnostic-tests">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="malariaRDT" name="diagnostic">
+                        <label for="malariaRDT">Malaria RDT Positive</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="dengueNS1" name="diagnostic">
+                        <label for="dengueNS1">Dengue NS1 Positive</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="widalTest" name="diagnostic">
+                        <label for="widalTest">Widal Test Positive</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5️⃣ Prediction Trigger Component -->
+            <button class="prediction-button" onclick="predictIllness()">
+                🔍 Predict Febrile Illness
+            </button>
+
+            <!-- Loading Spinner -->
+            <div class="loading" id="loadingSpinner">
+                <div class="spinner"></div>
+                <p style="margin-top: 15px; color: #0d7377; font-weight: 600;">Analyzing patient data...</p>
+            </div>
+
+            <!-- 6️⃣ Prediction Result Component -->
+            <div class="results-container" id="resultsContainer">
+                <div class="result-card">
+                    <h2>Prediction Result</h2>
+                    <div class="predicted-illness" id="predictedIllness">Dengue Fever</div>
+                    <div class="confidence-score">
+                        Confidence Score: <span id="confidenceScore">85%</span>
+                    </div>
+                </div>
+
+                <!-- 6.2 Explanation Component -->
+                <div class="explanation-card">
+                    <h3>🧠 Clinical Reasoning</h3>
+                    <p style="margin-bottom: 15px; color: #666;">Prediction supported by the following key factors:</p>
+                    <ul class="factor-list" id="factorList">
+                        <!-- Factors will be dynamically added here -->
+                    </ul>
+                </div>
+
+                <!-- 7️⃣ Clinical Disclaimer Component -->
+                <div class="disclaimer">
+                    <h4>⚠️ Medical Disclaimer</h4>
+                    <p>This system provides decision support and does not replace professional medical diagnosis. Always
+                        consult with qualified healthcare professionals for accurate diagnosis and treatment decisions.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 8️⃣ Footer Component -->
+        <div class="footer">
+            <p><strong>AI-Driven Febrile Illness Decision Support System</strong></p>
+            <p>Academic Project | Healthcare Informatics</p>
+            <p>&copy; 2025 | Developed for Clinical Decision Support Research</p>
+        </div>
+    </div>
+
+    <script>
+        // 4️⃣ Validation & Error Handling Component
+        function validateInputs() {
+            const errors = [];
+            const temperature = parseFloat(document.getElementById('temperature').value);
+            const platelet = parseFloat(document.getElementById('platelet').value);
+            const wbc = parseFloat(document.getElementById('wbc').value);
+            const hemoglobin = parseFloat(document.getElementById('hemoglobin').value);
+            const hematocrit = parseFloat(document.getElementById('hematocrit').value);
+
+            // Validate temperature
+            if (!temperature || temperature < 95 || temperature > 107) {
+                errors.push('Please enter a valid temperature between 95°F and 107°F');
+            }
+
+            // Validate platelet count
+            if (platelet !== '' && !isNaN(platelet) && (platelet < 0 || platelet > 1000)) {
+                errors.push('Platelet count must be between 0 and 1000 × 10³/μL');
+            }
+
+            // Validate WBC
+            if (wbc !== '' && !isNaN(wbc) && (wbc < 0 || wbc > 50)) {
+                errors.push('WBC count must be between 0 and 50 × 10³/μL');
+            }
+
+            // Validate hemoglobin
+            if (hemoglobin !== '' && !isNaN(hemoglobin) && (hemoglobin < 0 || hemoglobin > 25)) {
+                errors.push('Hemoglobin must be between 0 and 25 g/dL');
+            }
+
+            // Validate hematocrit
+            if (hematocrit !== '' && !isNaN(hematocrit) && (hematocrit < 0 || hematocrit > 70)) {
+                errors.push('Hematocrit must be between 0 and 70%');
+            }
+
+            return errors;
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.innerHTML = '<strong>⚠️ Validation Error:</strong><br>' + message;
+            errorDiv.style.display = 'block';
+
+            // Scroll to error
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // Hide after 5 seconds
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Main Prediction Function
+        function predictIllness() {
+            // Hide previous results and errors
+            document.getElementById('resultsContainer').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+
+            // Validate inputs
+            const errors = validateInputs();
+            if (errors.length > 0) {
+                showError(errors.join('<br>'));
+                return;
+            }
+
+            // Show loading spinner
+            document.getElementById('loadingSpinner').style.display = 'block';
+
+            // Simulate AI prediction (replace with actual API call)
+            fetch("/predict", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    temperature: parseFloat(document.getElementById('temperature').value),
+                    platelet: parseFloat(document.getElementById('platelet').value) || null,
+                    wbc: parseFloat(document.getElementById('wbc').value) || null,
+                    hemoglobin: parseFloat(document.getElementById('hemoglobin').value) || null,
+                    hematocrit: parseFloat(document.getElementById('hematocrit').value) || null,
+
+                    symptoms: {
+                        headache: document.getElementById('headache').checked,
+                        chills: document.getElementById('chills').checked,
+                        bodyPain: document.getElementById('bodyPain').checked,
+                        jointPain: document.getElementById('jointPain').checked,
+                        rash: document.getElementById('rash').checked,
+                        nausea: document.getElementById('nausea').checked
+                    },
+
+                    tests: {
+                        malariaRDT: document.getElementById('malariaRDT').checked,
+                        dengueNS1: document.getElementById('dengueNS1').checked,
+                        widalTest: document.getElementById('widalTest').checked
+                    }
+                })
+            })
+                .then(response => response.json())
+                .then(prediction => {
+                    displayResults(prediction);
+                    document.getElementById('loadingSpinner').style.display = 'none';
+                    document.getElementById('resultsContainer').scrollIntoView({ behavior: 'smooth' });
+                })
+                .catch(error => {
+                    showError("Server error. Please try again.");
+                    document.getElementById('loadingSpinner').style.display = 'none';
+                });
+
+        }
+
+        // AI Prediction Logic (Simplified - Replace with actual ML model)
+        function analyzePatientData() {
+            const temperature = parseFloat(document.getElementById('temperature').value);
+            const platelet = parseFloat(document.getElementById('platelet').value) || null;
+            const wbc = parseFloat(document.getElementById('wbc').value) || null;
+            const hemoglobin = parseFloat(document.getElementById('hemoglobin').value) || null;
+
+            // Get symptoms
+            const symptoms = {
+                headache: document.getElementById('headache').checked,
+                chills: document.getElementById('chills').checked,
+                bodyPain: document.getElementById('bodyPain').checked,
+                jointPain: document.getElementById('jointPain').checked,
+                rash: document.getElementById('rash').checked,
+                nausea: document.getElementById('nausea').checked
+            };
+
+            // Get diagnostic tests
+            const tests = {
+                malariaRDT: document.getElementById('malariaRDT').checked,
+                dengueNS1: document.getElementById('dengueNS1').checked,
+                widalTest: document.getElementById('widalTest').checked
+            };
+
+            const factors = [];
+            let illness = 'Viral Fever';
+            let confidence = 70;
+
+            // Simple rule-based prediction logic
+            if (tests.dengueNS1 || (platelet && platelet < 100)) {
+                illness = 'Dengue Fever';
+                confidence = 90;
+                if (tests.dengueNS1) factors.push('Dengue NS1 test positive');
+                if (platelet && platelet < 100) factors.push(`Low platelet count (${platelet} × 10³/μL)`);
+                if (symptoms.jointPain) factors.push('Joint pain present');
+                if (temperature >= 102) factors.push(`High fever (${temperature}°F)`);
+            } else if (tests.malariaRDT || (hemoglobin && hemoglobin < 10)) {
+                illness = 'Malaria';
+                confidence = 88;
+                if (tests.malariaRDT) factors.push('Malaria RDT positive');
+                if (hemoglobin && hemoglobin < 10) factors.push(`Low hemoglobin (${hemoglobin} g/dL)`);
+                if (symptoms.chills) factors.push('Chills present');
+                if (temperature >= 103) factors.push(`High fever (${temperature}°F)`);
+            } else if (tests.widalTest) {
+                illness = 'Typhoid Fever';
+                confidence = 85;
+                factors.push('Widal test positive');
+                if (symptoms.bodyPain) factors.push('Body pain present');
+                if (temperature >= 101) factors.push(`Elevated fever (${temperature}°F)`);
+            } else {
+                // Default to viral fever
+                if (temperature >= 100.4) factors.push(`Fever present (${temperature}°F)`);
+                if (symptoms.headache) factors.push('Headache present');
+                if (symptoms.bodyPain) factors.push('Body pain present');
+                if (wbc && wbc >= 4 && wbc <= 11) factors.push('Normal WBC count');
+            }
+
+            if (factors.length === 0) {
+                factors.push('General fever symptoms');
+                factors.push('No specific diagnostic markers');
+            }
+
+            return {
+                illness: illness,
+                confidence: confidence,
+                factors: factors
+            };
+        }
+
+        // Display Results
+        function displayResults(prediction) {
+            document.getElementById('predictedIllness').textContent = prediction.illness;
+            document.getElementById('confidenceScore').textContent = prediction.confidence + '%';
+
+            // Display factors
+            const factorList = document.getElementById('factorList');
+            factorList.innerHTML = '';
+            prediction.factors.forEach(factor => {
+                const li = document.createElement('li');
+                li.textContent = factor;
+                factorList.appendChild(li);
+            });
+
+            document.getElementById('resultsContainer').style.display = 'block';
+        }
+
+        // Add input animations
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('focus', function () {
+                this.parentElement.style.transform = 'scale(1.02)';
+                this.parentElement.style.transition = 'transform 0.2s';
+            });
+
+            input.addEventListener('blur', function () {
+                this.parentElement.style.transform = 'scale(1)';
+            });
+        });
+
+        // Add checkbox animations
+        document.querySelectorAll('.checkbox-item').forEach(item => {
+            const checkbox = item.querySelector('input[type="checkbox"]');
+            checkbox.addEventListener('change', function () {
+                if (this.checked) {
+                    item.style.borderColor = '#0d7377';
+                    item.style.background = '#e6f7f8';
+                } else {
+                    item.style.borderColor = '#e0e0e0';
+                    item.style.background = 'white';
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
